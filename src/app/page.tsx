@@ -55,6 +55,7 @@ export default async function HomePage() {
   // 🔹 Show Dashboard if logged in
   const transactions = await prisma.transaction.findMany({
     where: { userId: session.user.id },
+    include: { category: true },
     orderBy: { createdAt: "desc" },
   });
 

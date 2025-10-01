@@ -16,7 +16,7 @@ export async function addTransaction(amount: number, type: "INCOME" | "EXPENSE",
       amount,
       type,
       description: type === "INCOME" ? "Added Income" : "Added Expense",
-      categoryId,
+      categoryId: categoryId,
       userId: session?.user?.id ,
       
     },
