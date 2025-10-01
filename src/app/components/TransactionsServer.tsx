@@ -1,9 +1,20 @@
+// components/TransactionsServer.tsx
 import { prisma } from "@/lib/prisma";
-import { ArrowUpCircle, ArrowDownCircle } from "lucide-react"; // icons
+import { ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export default async function TransactionsServer() {
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session.user) {
+    return <p className="text-gray-500 text-center italic">Not signed in 🚫</p>;
+  }
+
   const transactions = await prisma.transaction.findMany({
+    where: { userId: session.user.id }, // 👈 filter only current user
     orderBy: { createdAt: "desc" },
+    include: { category: true }, // so you can display category name if needed
   });
 
   if (!transactions.length) {
@@ -27,7 +38,6 @@ export default async function TransactionsServer() {
                 : "bg-red-50 border-red-200"
             }`}
           >
-            {/* Left side: icon + details */}
             <div className="flex items-center gap-3">
               {isIncome ? (
                 <ArrowUpCircle className="text-green-500 w-6 h-6" />
@@ -39,12 +49,12 @@ export default async function TransactionsServer() {
                   {t.description || (isIncome ? "Income" : "Expense")}
                 </p>
                 <p className="text-xs text-gray-500">
+                  {t.category?.name ?? "Uncategorized"} ·{" "}
                   {new Date(t.createdAt).toLocaleString()}
                 </p>
               </div>
             </div>
 
-            {/* Right side: amount */}
             <p
               className={`font-semibold text-lg ${
                 isIncome ? "text-green-600" : "text-red-600"

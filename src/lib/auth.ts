@@ -4,6 +4,7 @@ import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 import { prisma } from "./prisma";
 import NextAuth, { DefaultSession, NextAuthOptions } from "next-auth";
+import { createDefaultCategories } from "./createDefaultCategories";
 
 declare module "next-auth" {
     interface Session {
@@ -17,7 +18,6 @@ declare module "next-auth" {
         email : string;
     }
 }
-
 
 
 
@@ -35,13 +35,24 @@ export const authOptions: NextAuthOptions = {
   ],
   secret: process.env.NEXTAUTH_SECRET,
   session: {
-    strategy: "database",
+    strategy: "jwt",  
   },
   callbacks: {
-    async session({ session, user }) {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;       
+        token.email = user.email; 
+      }
+      return token;
+    },
+
+    async session({ session, token }) {
       if (session.user) {
-        session.user.email = user.email!;
-        session.user.id = user.id;
+        session.user.id = token.id as string;
+        session.user.email = token.email as string;
+    
+        // 👇 ensure categories exist
+        await createDefaultCategories(session.user.id);
       }
       return session;
     },
