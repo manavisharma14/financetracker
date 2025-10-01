@@ -52,11 +52,14 @@ export default async function HomePage() {
     );
   }
 
-  // 🔹 Show Dashboard if logged in
   const transactions = await prisma.transaction.findMany({
     where: { userId: session.user.id },
-    include: { category: true },
     orderBy: { createdAt: "desc" },
+  });
+
+  const categories = await prisma.category.findMany({
+    where: { userId: session.user.id },
+    orderBy: { name: "asc" },
   });
 
   const safeTransactions = transactions.map((t) => ({
@@ -67,7 +70,7 @@ export default async function HomePage() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6">
       <div className="md:col-span-3 space-y-6">
-        <AddTransactionForm />
+        <AddTransactionForm categories={categories} /> {/* ✅ pass categories */}
         <IncomeExpenseLine transactions={safeTransactions} />
       </div>
       <div className="md:col-span-1">

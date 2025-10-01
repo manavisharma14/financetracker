@@ -3,23 +3,19 @@ import { useState, useTransition, useEffect } from "react";
 import { addTransaction } from "@/app/actions";
 import { useRouter } from "next/navigation";
 
-export default function AddTransactionForm() {
+interface Category {
+  id: string;
+  name: string;
+}
+
+export default function AddTransactionForm({categories} : {categories: Category[]}) {
   const [amount, setAmount] = useState("");
   const [type, setType] = useState<"INCOME" | "EXPENSE">("INCOME");
   const [categoryId, setCategoryId] = useState<string>("");
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
-  // 👇 fetch categories from DB
-  useEffect(() => {
-    const fetchCategories = async () => {
-      const res = await fetch("/api/categories");
-      const data = await res.json();
-      setCategories(data);
-    };
-    fetchCategories();
-  }, []);
+
 
   const handleAdd = () => {
     startTransition(async () => {

@@ -11,7 +11,6 @@ export async function GET() {
 
   const transactions = await prisma.transaction.findMany({
     where: { userId: session.user.id }, // 👈 filter only by userId
-    include: { category: true },
     orderBy: { createdAt: "desc" },
   });
 
