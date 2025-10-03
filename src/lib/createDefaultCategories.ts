@@ -6,8 +6,8 @@ export async function createDefaultCategories(userId: string) {
   if (existing.length === 0) {
     await prisma.category.createMany({
       data: [
-        { name: "Salary", type: "INCOME", userId },
-        { name: "Other Income", type: "INCOME", userId },
+
+
         { name: "Food & Drinks", type: "EXPENSE", userId },
         { name: "Travel", type: "EXPENSE", userId },
         { name: "Shopping", type: "EXPENSE", userId },

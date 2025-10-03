@@ -1,6 +1,5 @@
 "use client";
-import { useState, useTransition, useEffect } from "react";
-import { addTransaction } from "@/app/actions";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 interface Category {
@@ -8,26 +7,43 @@ interface Category {
   name: string;
 }
 
-export default function AddTransactionForm({categories} : {categories: Category[]}) {
+
+export default function AddTransactionForm({ categories }: { categories: Category[]}) {
   const [amount, setAmount] = useState("");
   const [type, setType] = useState<"INCOME" | "EXPENSE">("INCOME");
   const [categoryId, setCategoryId] = useState<string>("");
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
+  const handleAdd = async () => {
+    try {
+      startTransition(async () => {
 
+  
+        const res = await fetch("/api/transactions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount: Number(amount), type, categoryId }),
+        });
+  
+        if (!res.ok) throw new Error("Failed to add transaction");
+  
+        const newTx = await res.json();
 
-  const handleAdd = () => {
-    startTransition(async () => {
-      await addTransaction(parseFloat(amount), type, categoryId);
-      setAmount("");
-      setCategoryId("");
-      router.refresh();
-    });
+        setAmount("");
+        setCategoryId("");
+        setType("INCOME");
+  
+        router.refresh();
+      });
+    } catch (err) {
+      console.error("Error adding transaction:", err);
+    }
   };
 
   return (
     <div className="bg-white shadow-md rounded-xl p-6 space-y-4">
+      {/* Amount input */}
       <input
         type="number"
         placeholder="Enter amount"
@@ -39,6 +55,7 @@ export default function AddTransactionForm({categories} : {categories: Category[
       <div className="flex space-x-4">
         {/* Income button */}
         <button
+          type="button"
           className={`flex-1 p-3 rounded-lg ${
             type === "INCOME"
               ? "bg-green-500 text-white"
@@ -51,6 +68,7 @@ export default function AddTransactionForm({categories} : {categories: Category[
 
         {/* Expense button */}
         <button
+          type="button"
           className={`flex-1 p-3 rounded-lg ${
             type === "EXPENSE"
               ? "bg-red-500 text-white"
@@ -62,26 +80,28 @@ export default function AddTransactionForm({categories} : {categories: Category[
         </button>
 
         {/* Category dropdown */}
-        <select
-          value={categoryId}
-          onChange={(e) => setCategoryId(e.target.value)}
-          className="flex-1 p-3 rounded-lg border border-gray-300"
-        >
-          <option value="">Select Category</option>
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
+        {type === "EXPENSE" && (
+  <select
+    value={categoryId}
+    onChange={(e) => setCategoryId(e.target.value)}
+    className="flex-1 p-3 rounded-lg border border-gray-300"
+  >
+    <option value="">Select Category</option>
+    {categories.map((cat) => (
+      <option key={cat.id} value={cat.id}>
+        {cat.name}
+      </option>
+    ))}
+  </select>
+)}
       </div>
 
+      {/* Submit button */}
       <button
         className="w-full py-3 bg-[#7a81eb] hover:bg-[#7a81eb]/70 text-white rounded-lg"
         onClick={handleAdd}
-        disabled={isPending || !amount || !categoryId}
-      >
-        Add Transaction
+        disabled={isPending || !amount || (type === "EXPENSE" && !categoryId)}      >
+        {isPending ? "Adding..." : "Add Transaction"}
       </button>
     </div>
   );

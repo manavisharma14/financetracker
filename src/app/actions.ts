@@ -25,8 +25,11 @@ export async function addTransaction(
   };
 
   if (categoryId) {
-    data.categoryId = categoryId;  // only attach if exists
+    data.categoryId = categoryId;  
   }
 
-  return prisma.transaction.create({ data });
-}
+  return prisma.transaction.create({
+    data,
+    include: { category: true } 
+  });
+} 

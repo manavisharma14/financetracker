@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { Trash2 } from "lucide-react";
+import { DeleteButton } from "./DeleteButton";
 
 export default async function TransactionsServer() {
   const session = await getServerSession(authOptions);
@@ -12,9 +14,9 @@ export default async function TransactionsServer() {
   }
 
   const transactions = await prisma.transaction.findMany({
-    where: { userId: session.user.id }, // 👈 filter only current user
+    where: { userId: session.user.id },
     orderBy: { createdAt: "desc" },
-    include: { category: true }, // so you can display category name if needed
+    include: { category: true }, 
   });
 
   if (!transactions.length) {
@@ -26,13 +28,13 @@ export default async function TransactionsServer() {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-5">
       {transactions.map((t) => {
         const isIncome = t.type === "INCOME";
         return (
           <div
             key={t.id}
-            className={`flex items-center justify-between p-4 rounded-lg shadow-sm border transition hover:scale-[1.01] ${
+            className={` flex items-center justify-between p-4 rounded-lg shadow-sm border transition hover:scale-[1.01] ${
               isIncome
                 ? "bg-green-50 border-green-200"
                 : "bg-red-50 border-red-200"
@@ -53,6 +55,7 @@ export default async function TransactionsServer() {
                   {new Date(t.createdAt).toLocaleString()}
                 </p>
               </div>
+             
             </div>
 
             <p
@@ -62,6 +65,8 @@ export default async function TransactionsServer() {
             >
               {isIncome ? "+" : "-"}${t.amount}
             </p>
+
+            <DeleteButton id={t.id} />
           </div>
         );
       })}

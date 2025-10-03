@@ -6,12 +6,13 @@ import RightSideBar from "./components/RightSideBar";
 import TransactionsServer from "./components/TransactionsServer";
 import AddTransactionForm from "./components/AddTransactionForm";
 import IncomeExpenseLine from "./components/IncomeExpenseLine";
+import CategoryPie from "./components/CategoryPie";
 import Link from "next/link";
 
 export default async function HomePage() {
   const session = await getServerSession(authOptions);
 
-  // 🔹 Show Landing Page if not logged in
+
   if (!session) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100">
@@ -55,6 +56,7 @@ export default async function HomePage() {
   const transactions = await prisma.transaction.findMany({
     where: { userId: session.user.id },
     orderBy: { createdAt: "desc" },
+    include: { category: true }, // 👈 include related category details
   });
 
   const categories = await prisma.category.findMany({
@@ -70,8 +72,11 @@ export default async function HomePage() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6">
       <div className="md:col-span-3 space-y-6">
-        <AddTransactionForm categories={categories} /> {/* ✅ pass categories */}
+        <AddTransactionForm categories={categories} /> 
+        <div className="flex gap-6 mt-16">
         <IncomeExpenseLine transactions={safeTransactions} />
+        <CategoryPie transactions={safeTransactions} />
+        </div>
       </div>
       <div className="md:col-span-1">
         <RightSideBar />
